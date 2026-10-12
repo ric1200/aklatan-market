@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 400" role="img" aria-label="An open book, a cup of coffee and a stack of books on a table">
+  <rect width="520" height="400" fill="none"/>
+  <!-- back wall wash -->
+  <path d="M0 300c90-26 190-40 300-34s160 22 220 40v94H0z" fill="#EFE7D6"/>
+  <!-- stack of books, left -->
+  <g>
+    <rect x="40" y="252" width="150" height="22" rx="3" fill="#9C4A34"/>
+    <rect x="48" y="230" width="134" height="22" rx="3" fill="#2C6E63"/>
+    <rect x="44" y="208" width="142" height="22" rx="3" fill="#E0AC45"/>
+    <rect x="52" y="186" width="126" height="22" rx="3" fill="#172B4D"/>
+  </g>
+  <!-- open book, centre -->
+  <g transform="translate(196 150)">
+    <path d="M0 110c34-20 74-22 110-8V14C74 0 34 2 0 22Z" fill="#FAF7F0" stroke="#172B4D" stroke-width="3"/>
+    <path d="M220 110c-34-20-74-22-110-8V14c36-14 76-12 110 8Z" fill="#F4EFE4" stroke="#172B4D" stroke-width="3"/>
+    <path d="M110 102V14" stroke="#172B4D" stroke-width="3"/>
+    <g stroke="#C9BEA8" stroke-width="2.4" stroke-linecap="round">
+      <path d="M20 40h72M20 56h72M20 72h58"/>
+      <path d="M128 40h72M128 56h72M128 72h58"/>
+    </g>
+    <path d="M-14 112h248" stroke="#172B4D" stroke-width="0"/>
+  </g>
+  <!-- cup -->
+  <g transform="translate(420 208)">
+    <path d="M0 0h56v34a28 28 0 0 1-28 28h0A28 28 0 0 1 0 34Z" fill="#E5A93D"/>
+    <path d="M56 8h14a13 13 0 0 1 0 26H56" fill="none" stroke="#E5A93D" stroke-width="6"/>
+    <path d="M14 -14c0-8 10-8 10-16M30 -12c0-8 10-8 10-16" stroke="#B99a6a" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+  </g>
+  <!-- table line -->
+  <path d="M0 274h520" stroke="#172B4D" stroke-width="3" opacity="0.55"/>
+</svg>

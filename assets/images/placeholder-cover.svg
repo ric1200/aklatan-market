@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 600" width="400" height="600" role="img" aria-label="Cover image not available">
+  <rect width="400" height="600" fill="#EFE9DC"/>
+  <rect x="0" y="0" width="16" height="600" fill="#E1D8C6"/>
+  <rect x="42" y="34" width="322" height="532" fill="none" stroke="#C9BEA8" stroke-width="1.4"/>
+  <g transform="translate(148,244)" fill="none" stroke="#9A8F79" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M52 14C45 7.4 36 4 25.8 4H12v70h13.8C36 74 45 77.4 52 84c7-6.6 16-10 26.2-10H92V4H78.2C68 4 59 7.4 52 14Z"/>
+    <path d="M52 14v70"/>
+  </g>
+  <text x="196" y="410" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="22" fill="#6E6551">Cover coming soon</text>
+  <text x="196" y="442" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" letter-spacing="1.6" fill="#9A8F79">AKLATAN MARKET</text>
+</svg>

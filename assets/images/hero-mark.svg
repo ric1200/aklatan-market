@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" role="img" aria-label="Decorative golden reading lamp and rays">
+  <g fill="none" stroke="#E5A93D" stroke-width="3" opacity="0.55">
+    <circle cx="150" cy="150" r="96"/>
+    <circle cx="150" cy="150" r="134" stroke-dasharray="3 12"/>
+    <path d="M150 16v26M150 258v26M16 150h26M258 150h26M56 56l19 19M225 225l19 19M244 56l-19 19M75 225l-19 19"/>
+  </g>
+</svg>

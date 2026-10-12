@@ -1,0 +1,143 @@
+@charset "UTF-8";
+/* =============================================================================
+   Aklatan Market - admin stylesheet
+   Loads after style.css and reuses the same design tokens, then layers a
+   denser, data-first management layout on top.
+   ========================================================================== */
+
+body.admin { background: #F4F1EA; }
+
+.admin-shell { display: grid; min-height: 100vh; grid-template-rows: auto 1fr; }
+
+.admin-topbar {
+  background: var(--ink); color: #E8E3D7; position: sticky; top: 0; z-index: 70;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+}
+.admin-topbar-inner { display: flex; align-items: center; gap: 14px; padding: 10px 16px; max-width: 1600px; margin-inline: auto; }
+.admin-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #fff; flex: 1 1 auto; min-width: 0; }
+.admin-brand .brand-mark { color: var(--amber); }
+.admin-brand-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.admin-brand-name { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; }
+.admin-brand-sub { font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); }
+.admin-topbar-actions { display: flex; align-items: center; gap: 6px; }
+.admin-topbar-actions a, .admin-topbar-actions button {
+  display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, .18); background: transparent; color: #EDE7D9;
+  font-size: .85rem; font-weight: 600; text-decoration: none;
+}
+.admin-topbar-actions a:hover, .admin-topbar-actions button:hover { background: rgba(255, 255, 255, .1); color: #fff; }
+.admin-menu-toggle { display: inline-flex; }
+
+.admin-body { display: grid; grid-template-columns: 1fr; max-width: 1600px; margin-inline: auto; width: 100%; }
+.admin-sidebar {
+  background: #fff; border-right: 1px solid var(--line);
+  padding: 14px; display: none;
+}
+.admin-sidebar.is-open { display: block; }
+.admin-sidebar h2 { font-family: var(--font-body); font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 16px 10px 8px; }
+.admin-sidebar h2:first-child { margin-top: 0; }
+.admin-sidebar a {
+  display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: var(--radius-sm);
+  color: var(--ink); text-decoration: none; font-size: .9rem; font-weight: 500;
+}
+.admin-sidebar a:hover { background: var(--paper-2); }
+.admin-sidebar a.is-current { background: var(--ink); color: #fff; }
+.admin-sidebar a .badge-count {
+  margin-left: auto; background: var(--brick); color: #fff; font-size: .7rem; font-weight: 700;
+  padding: 1px 7px; border-radius: 999px;
+}
+.admin-sidebar a.is-current .badge-count { background: var(--amber); color: #3A2703; }
+
+.admin-main { padding: 18px 16px 60px; min-width: 0; }
+.admin-head { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; }
+.admin-head h1 { font-size: clamp(1.4rem, 1.2rem + 1vw, 1.9rem); margin: 0; }
+.admin-head .admin-sub { color: var(--muted); font-size: .9rem; margin-top: 4px; }
+.admin-crumbs { font-size: .82rem; color: var(--muted); margin-bottom: 6px; }
+.admin-crumbs a { color: var(--muted); }
+.admin-crumbs a:hover { color: var(--ink); }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+.kpi {
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 15px; box-shadow: var(--shadow-xs);
+}
+.kpi .kpi-label { font-size: .74rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+.kpi .kpi-value { font-family: var(--font-display); font-size: 1.7rem; line-height: 1.15; margin-top: 6px; }
+.kpi .kpi-note { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+.kpi-warn .kpi-value { color: var(--warn); }
+.kpi-bad .kpi-value { color: var(--danger); }
+.kpi-ok .kpi-value { color: var(--success); }
+
+.admin-panel { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-xs); margin-bottom: 18px; overflow: hidden; }
+.admin-panel-head {
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--line);
+}
+.admin-panel-head h2 { font-size: 1.05rem; font-family: var(--font-body); font-weight: 700; margin: 0; }
+.admin-panel-head .panel-note { font-size: .82rem; color: var(--muted); }
+.admin-panel-body { padding: 16px; }
+.admin-panel-body.flush { padding: 0; }
+
+.admin-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.admin-toolbar .field { min-width: 150px; flex: 1 1 160px; }
+.admin-toolbar .field.tight { flex: 0 0 auto; min-width: 0; }
+
+table.admin-table { width: 100%; font-size: .88rem; }
+table.admin-table th, table.admin-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
+table.admin-table thead th { background: #FBF9F4; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; }
+table.admin-table tbody tr:hover { background: #FDFBF6; }
+table.admin-table td.num, table.admin-table th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+table.admin-table td.actions { text-align: right; white-space: nowrap; }
+table.admin-table img.thumb { width: 34px; aspect-ratio: 2/3; object-fit: cover; border-radius: 5px; border: 1px solid var(--line); }
+.admin-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.admin-table { min-width: 620px; }
+.admin-table-wrap table.admin-table { min-width: 620px; }
+
+.admin-actions { display: inline-flex; gap: 6px; align-items: center; }
+.btn-xs { padding: 6px 10px; font-size: .8rem; }
+
+.inline-form { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.inline-form .field { flex: 1 1 160px; }
+
+.admin-grid-2 { display: grid; gap: 16px; }
+.detail-list { display: grid; gap: 0; font-size: .9rem; }
+.detail-list > div { display: grid; grid-template-columns: 150px 1fr; gap: 12px; padding: 9px 0; border-bottom: 1px dotted var(--line); }
+.detail-list dt, .detail-list .k { color: var(--muted); font-size: .82rem; font-weight: 600; }
+.detail-list > div:last-child { border-bottom: 0; }
+
+.settings-section + .settings-section { margin-top: 22px; padding-top: 20px; border-top: 1px solid var(--line); }
+.settings-section h3 { font-family: var(--font-body); font-size: 1rem; margin-bottom: 12px; }
+
+.proof-thumb { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); }
+
+.chart-bars { display: grid; gap: 8px; }
+.chart-bar { display: grid; grid-template-columns: 88px 1fr 78px; gap: 10px; align-items: center; font-size: .82rem; }
+.chart-bar .bar { height: 12px; background: var(--paper-3); border-radius: 999px; overflow: hidden; }
+.chart-bar .bar span { display: block; height: 100%; background: var(--teal); }
+.chart-bar .amount { text-align: right; font-variant-numeric: tabular-nums; }
+
+.audit-list { display: grid; gap: 0; font-size: .86rem; }
+.audit-list li { display: grid; grid-template-columns: 1fr; gap: 2px; padding: 10px 0; border-bottom: 1px dotted var(--line); }
+.audit-list .audit-action { font-weight: 600; }
+.audit-list .audit-meta { color: var(--muted); font-size: .78rem; }
+
+@media (min-width: 640px) {
+  .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .admin-grid-2 { grid-template-columns: 1fr 1fr; }
+}
+
+@media (min-width: 900px) {
+  .admin-body { grid-template-columns: 244px minmax(0, 1fr); }
+  .admin-sidebar { display: block; }
+  .admin-menu-toggle { display: none; }
+  .admin-main { padding: 24px 24px 72px; }
+  .kpi-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .admin-topbar-inner { padding-inline: 24px; }
+  .admin-table-wrap { overflow-x: visible; }
+}
+
+@media print {
+  .admin-topbar, .admin-sidebar, .admin-head .btn, .admin-toolbar { display: none !important; }
+  .admin-body { grid-template-columns: 1fr; }
+  .admin-panel { border-color: #ccc; box-shadow: none; }
+}

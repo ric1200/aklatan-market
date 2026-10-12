@@ -1,0 +1,62 @@
+# =============================================================================
+#  Aklatan Market - Apache configuration
+#  This file is optional. The store works without it, but it adds useful
+#  hardening on shared hosting such as InfinityFree.
+# =============================================================================
+
+# Use index.php as the directory index.
+DirectoryIndex index.php index.html
+
+# Do not serve directory listings.
+Options -Indexes
+
+# Do not advertise the PHP version or server signature.
+ServerSignature Off
+
+# -----------------------------------------------------------------------------
+#  Protect private folders. Credentials, SQL dumps and PHP includes must never
+#  be downloadable, even if a visitor guesses a file name.
+# -----------------------------------------------------------------------------
+RedirectMatch 404 ^/?config/
+RedirectMatch 404 ^/?includes/
+RedirectMatch 404 ^/?database/
+RedirectMatch 404 ^/?storage/
+RedirectMatch 404 ^/?tools/
+
+<IfModule mod_headers.c>
+  # Basic hardening headers. Ignored by Apache if mod_headers is unavailable.
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType image/jpeg "access plus 30 days"
+</IfModule>
+
+# -----------------------------------------------------------------------------
+#  Custom error pages (only for installations at the root of a domain).
+#  If you upload this store into a sub-folder such as /shop, change these to
+#  /shop/404.php and /shop/403.php - or simply leave them commented out.
+# -----------------------------------------------------------------------------
+# ErrorDocument 404 /404.php
+# ErrorDocument 403 /403.php
+# ErrorDocument 500 /500.php
+
+# -----------------------------------------------------------------------------
+#  Session and upload tuning. Some free hosts reject these directives and
+#  return "500 Internal Server Error". If that happens, comment them out.
+# -----------------------------------------------------------------------------
+# php_value session.cookie_httponly 1
+# php_value session.use_strict_mode 1
+# php_value upload_max_filesize 2M
+# php_value post_max_size 8M

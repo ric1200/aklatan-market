@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Aklatan Market">
+  <rect width="64" height="64" rx="14" fill="#172B4D"/>
+  <g fill="none" stroke="#E5A93D" stroke-width="4" stroke-linejoin="round">
+    <path d="M32 22c-3-2.8-6.9-4.2-11.2-4.2H16v24h4.8c4.3 0 8.2 1.4 11.2 4.2 3-2.8 6.9-4.2 11.2-4.2H48v-24h-4.8C38.9 17.8 35 19.2 32 22Z"/>
+    <path d="M32 22v24"/>
+  </g>
+</svg>
