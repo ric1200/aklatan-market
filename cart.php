@@ -41,6 +41,12 @@ if (is_post()) {
             cart_respond($ok, $message, $return);
             break;
         }
+        case 'selection': {
+            cart_save_selection(post_raw('selected_ids', []));
+            // Native POST/redirect also works without JavaScript.
+            redirect('cart.php');
+            break;
+        }
         case 'update': {
             // Accepts either a single product_id or quantities[] from the cart form.
             $quantities = post_raw('quantities', []);
@@ -54,6 +60,18 @@ if (is_post()) {
             } else {
                 [$ok, $message] = cart_update(post_int('product_id'), post_int('quantity'));
                 $messages[] = $message;
+            }
+            if (post('selection_present') === '1') {
+                cart_save_selection(post_raw('selected_ids', []));
+            }
+            if (post('checkout_selected') === '1') {
+                if (!$ok) {
+                    cart_respond(false, implode(' ', $messages), 'cart.php');
+                }
+                if (!cart_selected_items()) {
+                    cart_respond(false, 'Select at least one available item to check out.', 'cart.php');
+                }
+                redirect('checkout.php');
             }
             cart_respond($ok, $messages ? implode(' ', $messages) : 'Cart updated.', 'cart.php');
             break;
@@ -73,7 +91,7 @@ if (is_post()) {
         }
         case 'apply_discount': {
             $code = strtoupper(truncate(post_raw('discount_code'), 40));
-            $totals = cart_totals();
+            $totals = cart_totals('cod', cart_selected_items());
             $check = discount_validate($code, (float) $totals['subtotal']);
             if ($check['ok']) {
                 $_SESSION['discount_code'] = $check['code']['code'];
@@ -94,7 +112,12 @@ if (is_post()) {
 }
 
 $items = cart_items();
-$totals = cart_totals();
+// Prune choices that have become unavailable since the previous visit.
+cart_save_selection(cart_selected_ids($items, true), $items);
+$selectedIds = cart_selected_ids($items);
+$selectedItems = cart_selected_items($items);
+$totals = cart_totals('cod', $selectedItems);
+$availableCount = count(array_filter($items, function ($item) { return $item['available']; }));
 $threshold = setting_float('free_shipping_threshold', 1500);
 $remaining = max(0, $threshold - (float) $totals['subtotal']);
 $progress = $threshold > 0 ? min(100, (int) round(((float) $totals['subtotal'] / $threshold) * 100)) : 100;
@@ -131,12 +154,27 @@ render_breadcrumb([['label' => 'Home', 'url' => 'index.php'], ['label' => 'Shopp
   <?php else: ?>
     <div class="cart-layout">
       <div>
-        <form method="post" action="<?= e(url('cart.php')) ?>">
+        <form id="cart-selection-form" method="post" action="<?= e(url('cart.php')) ?>">
           <?= csrf_field() ?>
           <input type="hidden" name="action" value="update">
+          <input type="hidden" name="selection_present" value="1">
+          <div class="cart-select-toolbar">
+            <label class="cart-select-label">
+              <input type="checkbox" data-select-all <?= $availableCount > 0 && count($selectedIds) === $availableCount ? 'checked' : '' ?> <?= $availableCount === 0 ? 'disabled' : '' ?>>
+              <span>Select all available items</span>
+            </label>
+            <span class="small muted" data-selection-status role="status" aria-live="polite"><?= count($selectedIds) ?> selected</span>
+          </div>
+          <p class="small muted mb-2">Only checked items will be ordered. Unchecked items stay in your cart.</p>
           <div class="cart-list">
             <?php foreach ($items as $item): $product = $item['product']; ?>
-              <div class="cart-row <?= $item['available'] ? '' : 'is-unavailable' ?>">
+              <div class="cart-row has-selection <?= $item['available'] ? '' : 'is-unavailable' ?>">
+                <label class="cart-item-select">
+                  <input type="checkbox" name="selected_ids[]" value="<?= (int) $product['id'] ?>" data-cart-select
+                         aria-label="Select <?= e($product['name']) ?> for checkout"
+                         <?= in_array((int) $product['id'], $selectedIds, true) && $item['available'] ? 'checked' : '' ?>
+                         <?= !$item['available'] ? 'disabled' : '' ?>>
+                </label>
                 <img src="<?= e(product_image_url($product)) ?>" alt="<?= e($product['name']) ?> cover" width="400" height="600" loading="lazy">
                 <div class="cart-row-main">
                   <p class="cart-row-title"><a href="<?= e(product_url($product)) ?>"><?= e($product['name']) ?></a></p>
@@ -149,7 +187,7 @@ render_breadcrumb([['label' => 'Home', 'url' => 'index.php'], ['label' => 'Shopp
                     <?php if ($item['available']): ?>
                       <span class="stock-ok">In stock</span> · <?= e(money($product['price'])) ?> each
                     <?php else: ?>
-                      <span class="stock-out">Out of stock — remove to continue</span>
+                      <span class="stock-out">Out of stock — cannot be selected</span>
                     <?php endif; ?>
                   </p>
                   <div class="cart-row-controls">
@@ -180,16 +218,16 @@ render_breadcrumb([['label' => 'Home', 'url' => 'index.php'], ['label' => 'Shopp
       </div>
 
       <aside>
-        <div class="summary-card sticky-summary">
-          <h2>Order summary</h2>
+        <div class="summary-card sticky-summary" data-cart-summary>
+          <h2>Selected items summary</h2>
           <div class="summary-lines">
-            <div><span>Subtotal (<?= cart_count() ?> items)</span><span><?= e(money($totals['subtotal'])) ?></span></div>
+            <div><span>Subtotal (<?= (int) $totals['item_count'] ?> selected items)</span><span><?= e(money($totals['subtotal'])) ?></span></div>
             <?php if ($totals['discount'] > 0): ?>
               <div><span>Discount</span><span class="stock-ok">−<?= e(money($totals['discount'])) ?></span></div>
             <?php endif; ?>
             <div>
               <span>Shipping</span>
-              <span><?= $totals['shipping'] > 0 ? e(money($totals['shipping'])) : 'Free' ?></span>
+              <span><?= $totals['item_count'] === 0 ? '—' : ($totals['shipping'] > 0 ? e(money($totals['shipping'])) : 'Free') ?></span>
             </div>
           </div>
           <div class="summary-lines summary-total">
@@ -197,7 +235,7 @@ render_breadcrumb([['label' => 'Home', 'url' => 'index.php'], ['label' => 'Shopp
             <span class="price"><?= e(money($totals['total'])) ?></span>
           </div>
 
-          <?php if ($threshold > 0): ?>
+          <?php if ($threshold > 0 && $totals['item_count'] > 0): ?>
             <div class="shipping-progress">
               <?php if ($remaining > 0): ?>
                 <p>Add <strong><?= e(money($remaining)) ?></strong> more for free shipping.</p>
@@ -229,9 +267,13 @@ render_breadcrumb([['label' => 'Home', 'url' => 'index.php'], ['label' => 'Shopp
             </form>
           <?php endif; ?>
 
-          <a class="btn btn-primary btn-block btn-lg" href="<?= e(url('checkout.php')) ?>">
-            <?= icon('arrow-right', '', 18) ?> Proceed to checkout
-          </a>
+          <button type="submit" form="cart-selection-form" name="checkout_selected" value="1"
+                  class="btn btn-primary btn-block btn-lg" data-selected-checkout <?= !$selectedItems ? 'disabled' : '' ?>>
+            <?= icon('arrow-right', '', 18) ?> Checkout selected items
+          </button>
+          <?php if (!$selectedItems): ?>
+            <p class="summary-note">Select at least one available item to continue.</p>
+          <?php endif; ?>
           <p class="summary-note">Prices, stock and totals are confirmed again on the server at checkout. Nothing is
             charged automatically on this site.</p>
         </div>
@@ -239,4 +281,87 @@ render_breadcrumb([['label' => 'Home', 'url' => 'index.php'], ['label' => 'Shopp
     </div>
   <?php endif; ?>
 </div>
+<style>
+.cart-select-toolbar { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px; }
+.cart-select-label { display:inline-flex; align-items:center; gap:10px; cursor:pointer; }
+.cart-item-select { display:flex; align-items:flex-start; justify-content:center; padding-top:4px; }
+.cart-select-label input[type="checkbox"], .cart-item-select input[type="checkbox"] { width:20px; height:20px; flex:0 0 20px; margin:0; accent-color:var(--teal, #286f63); cursor:pointer; }
+.cart-row.has-selection { grid-template-columns:20px 74px minmax(0, 1fr); }
+[data-cart-summary][aria-busy="true"] { opacity:.7; }
+[data-selected-checkout]:disabled { opacity:.6; cursor:not-allowed; }
+@media (min-width:600px) { .cart-row.has-selection { grid-template-columns:20px 96px minmax(0, 1fr); } }
+@media (max-width:380px) { .cart-row.has-selection { gap:8px; padding:10px; grid-template-columns:20px 52px minmax(0, 1fr); } .cart-row.has-selection > img { width:52px; } }
+</style>
+<script>
+(() => {
+  'use strict';
+  const form = document.getElementById('cart-selection-form');
+  if (!form) return;
+  const all = form.querySelector('[data-select-all]');
+  const status = form.querySelector('[data-selection-status]');
+  const choices = [...form.querySelectorAll('[data-cart-select]:not(:disabled)')];
+  let running = false, queued = false, timer;
+  function updateState(message) {
+    const n = choices.filter(input => input.checked).length;
+    all.checked = choices.length > 0 && n === choices.length;
+    all.indeterminate = n > 0 && n < choices.length;
+    status.textContent = message || `${n} selected`;
+    const button = document.querySelector('[data-selected-checkout]');
+    if (button) button.disabled = n === 0 || running || queued;
+  }
+  function markBusy() {
+    const summary = document.querySelector('[data-cart-summary]');
+    if (summary) { summary.inert = true; summary.setAttribute('aria-busy', 'true'); }
+  }
+  async function save() {
+    if (running) { queued = true; return; }
+    running = true;
+    queued = false;
+    markBusy();
+    updateState('Updating selected totals…');
+    const body = new FormData(form);
+    body.set('action', 'selection');
+    try {
+      const response = await fetch(form.getAttribute('action') || window.location.href, { method:'POST', body, credentials:'same-origin', cache:'no-store' });
+      if (!response.ok) throw new Error('Selection update failed');
+      const doc = new DOMParser().parseFromString(await response.text(), 'text/html');
+      const summary = doc.querySelector('[data-cart-summary]');
+      if (!summary) throw new Error('Cart response missing');
+      if (!queued) document.querySelector('[data-cart-summary]').replaceWith(summary);
+      status.textContent = '';
+    } catch (error) {
+      queued = false;
+      // Do not allow checkout against a visibly stale summary.
+      running = false;
+      markBusy();
+      updateState('Could not update totals. Click Update quantities to save and retry.');
+      const button = document.querySelector('[data-selected-checkout]');
+      if (button) button.disabled = true;
+      return;
+    }
+    running = false;
+    if (queued) { clearTimeout(timer); save(); }
+    else updateState();
+  }
+  function changed() {
+    queued = true;
+    markBusy();
+    updateState('Updating selected totals…');
+    clearTimeout(timer);
+    timer = setTimeout(save, 200);
+  }
+  all.addEventListener('change', () => { choices.forEach(input => { input.checked = all.checked; }); changed(); });
+  choices.forEach(input => input.addEventListener('change', changed));
+  // Pending background writes must finish before a native form navigation.
+  // Quantity updates and checkout always submit selections again server-side.
+  form.addEventListener('submit', event => {
+    if (running || queued) {
+      event.preventDefault();
+      updateState('Please wait for selected totals to finish updating.');
+    }
+  });
+  updateState();
+})();
+</script>
+
 <?php render_footer(); ?>

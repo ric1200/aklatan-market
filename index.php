@@ -11,7 +11,6 @@ $newArrivals = catalog_shelf('is_new_arrival', 4);
 $staffPicks  = catalog_shelf('is_staff_pick', 4);
 $forStudents = catalog_products_for_students(4);
 $media       = catalog_media(4);
-$categories  = catalog_categories();
 $lowStockThreshold = setting_int('low_stock_threshold', 5);
 
 $catalogCount = (int) fetch_value('SELECT COUNT(*) FROM products WHERE is_active = 1', [], 0);
@@ -60,47 +59,6 @@ render_header([
   </div>
 </section>
 
-<section class="trust-strip" aria-label="Why shop with us">
-  <div class="container trust-grid">
-    <div class="trust-item">
-      <?= icon('truck', '', 22) ?>
-      <div><strong>Free shipping over <?= e(money(setting_float('free_shipping_threshold', 1500))) ?></strong>
-        <span class="muted">Flat <?= e(money(setting_float('shipping_fee', 99))) ?> below that, anywhere in the Philippines.</span></div>
-    </div>
-    <div class="trust-item">
-      <?= icon('shield', '', 22) ?>
-      <div><strong>Cash on delivery or GCash</strong>
-        <span class="muted">No card details needed. Manual GCash payments are checked by a real person.</span></div>
-    </div>
-    <div class="trust-item">
-      <?= icon('package', '', 22) ?>
-      <div><strong>Packed like books should be</strong>
-        <span class="muted">Corner-protected and bubble-wrapped, with a printed receipt inside.</span></div>
-    </div>
-  </div>
-</section>
-
-<section class="section" aria-labelledby="browse-categories">
-  <div class="container">
-    <div class="section-title">
-      <div>
-        <p class="eyebrow">Shelves</p>
-        <h2 id="browse-categories">Browse by category</h2>
-        <p>Ten shelves, from Filipino classics to vinyl records.</p>
-      </div>
-      <a class="link-arrow" href="<?= e(url('products.php')) ?>">See everything <?= icon('arrow-right', '', 15) ?></a>
-    </div>
-    <div class="cat-grid">
-      <?php foreach ($categories as $cat): ?>
-        <a class="cat-card" data-accent="<?= e($cat['accent']) ?>" href="<?= e(category_url($cat)) ?>">
-          <span class="cat-icon"><?= icon($cat['icon'] ?: 'book', '', 22) ?></span>
-          <span class="cat-name"><?= e($cat['name']) ?></span>
-          <span class="cat-meta"><?= (int) $cat['product_count'] ?> <?= (int) $cat['product_count'] === 1 ? 'title' : 'titles' ?></span>
-        </a>
-      <?php endforeach; ?>
-    </div>
-  </div>
-</section>
 
 <?php if ($bestsellers): ?>
 <section class="shelf shelf-alt" aria-labelledby="shelf-bestsellers">

@@ -14,10 +14,49 @@ require_once __DIR__ . '/includes/bootstrap.php';
 
 $user = require_login('Please sign in before checking out — that way only you can see your orders.');
 
-$items = cart_items();
+$allItems = cart_items();
+if (is_post() && post('action') === 'place_order') {
+    csrf_guard();
+    $postedIds = post_raw('checkout_ids', []);
+    $postedQuantities = post_raw('checkout_quantities', []);
+    $ids = [];
+    if (is_array($postedIds)) {
+        foreach ($postedIds as $id) {
+            if (!is_scalar($id) || !ctype_digit((string) $id) || (int) $id <= 0) {
+                flash_error('Your checkout selection is invalid. Please select your items again.');
+                redirect('cart.php');
+            }
+            $ids[(int) $id] = true;
+        }
+    }
+    $items = array_values(array_filter($allItems, function ($item) use ($ids) {
+        return isset($ids[(int) $item['product']['id']]);
+    }));
+    if (count($items) !== count($ids) || !is_array($postedQuantities)) {
+        flash_error('Your cart changed. Please review and select your items again.');
+        redirect('cart.php');
+    }
+    foreach ($items as $item) {
+        $pid = (int) $item['product']['id'];
+        $postedQty = $postedQuantities[$pid] ?? null;
+        if (!is_scalar($postedQty) || !ctype_digit((string) $postedQty)
+            || (int) $postedQty !== (int) $item['quantity']) {
+            flash_error('An item quantity changed. Please review your cart before ordering.');
+            redirect('cart.php');
+        }
+    }
+} else {
+    $items = cart_selected_items($allItems);
+}
 if (!$items) {
-    flash_info('Your cart is empty, so there is nothing to check out yet.');
+    flash_info('Select at least one available item in your cart before checking out.');
     redirect('cart.php');
+}
+foreach ($items as $item) {
+    if (!$item['available'] || (int) $item['quantity'] <= 0) {
+        flash_error('A selected item is no longer in stock. Please review your cart.');
+        redirect('cart.php');
+    }
 }
 
 /* --------------------------------------------------------- payment options */
@@ -280,6 +319,10 @@ if (is_post() && post('action') === 'place_order') {
                 ]);
             }
 
+            // Remove only the products in this order, in the same transaction.
+            foreach ($orderLines as $line) {
+                cart_remove((int) $line['product']['id']);
+            }
             $pdo->commit();
         } catch (Throwable $ex) {
             if ($pdo->inTransaction()) { $pdo->rollBack(); }
@@ -292,7 +335,7 @@ if (is_post() && post('action') === 'place_order') {
         }
 
         if (!$errors) {
-            cart_clear();
+            unset($_SESSION['checkout_selections'][cart_selection_key()]);
             discount_clear();
             audit_log('order.created', 'order', $orderId, 'Order ' . $orderNumber . ' placed for ' . money($total));
             flash_success('Order ' . $orderNumber . ' has been received. Thank you!');
@@ -301,7 +344,7 @@ if (is_post() && post('action') === 'place_order') {
     }
 }
 
-$totals = cart_totals($form['payment_method']);
+$totals = cart_totals($form['payment_method'], $items);
 $threshold = setting_float('free_shipping_threshold', 1500);
 $remaining = max(0, $threshold - (float) $totals['subtotal']);
 $applied = applied_discount();
@@ -334,6 +377,10 @@ render_breadcrumb([['label' => 'Home', 'url' => 'index.php'], ['label' => 'Cart'
   <form method="post" action="<?= e(url('checkout.php')) ?>" enctype="multipart/form-data" class="checkout-layout">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="place_order">
+    <?php foreach ($items as $checkoutItem): ?>
+      <input type="hidden" name="checkout_ids[]" value="<?= (int) $checkoutItem['product']['id'] ?>">
+      <input type="hidden" name="checkout_quantities[<?= (int) $checkoutItem['product']['id'] ?>]" value="<?= (int) $checkoutItem['quantity'] ?>">
+    <?php endforeach; ?>
 
     <div>
       <div class="checkout-steps" aria-hidden="true">
@@ -485,7 +532,8 @@ render_breadcrumb([['label' => 'Home', 'url' => 'index.php'], ['label' => 'Cart'
 
     <aside>
       <div class="summary-card sticky-summary">
-        <h2>Your order</h2>
+        <h2>Your selected items</h2>
+        <p class="summary-note">Only these items will be ordered. Other items stay in your cart.</p>
         <?php foreach ($items as $item): ?>
           <div class="order-item-mini">
             <img src="<?= e(product_image_url($item['product'])) ?>" alt="" width="400" height="600" loading="lazy">
